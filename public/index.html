@@ -1,0 +1,86 @@
+<html>
+  <head>
+    <!-- Mixmax SDK -->
+    <script defer src="https://d1xa36cy0xt122.cloudfront.net/v1/Mixmax.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+    <script>
+      $(document).ready(function() {
+
+        $('#canvas-wrapper').hide();
+        
+        var canvas = $('#canvas').get(0),
+          context = canvas.getContext("2d"),
+          video = $('#video').get(0),
+          videoObj = { 'video' : true },
+          errBack = function(error) {
+            console.log("Video capture error: ", error.code); 
+          };
+        // Put video listeners into place
+        if(navigator.getUserMedia) { // Standard
+          navigator.getUserMedia(videoObj, function(stream) {
+            video.src = stream;
+            video.play();
+          }, errBack);
+        } else if(navigator.webkitGetUserMedia) { // WebKit-prefixed
+          navigator.webkitGetUserMedia(videoObj, function(stream){
+            video.src = window.webkitURL.createObjectURL(stream);
+            video.play();
+          }, errBack);
+        } else if(navigator.mozGetUserMedia) { // WebKit-prefixed
+          navigator.mozGetUserMedia(videoObj, function(stream){
+            video.src = window.URL.createObjectURL(stream);
+            video.play();
+          }, errBack);
+        }
+
+        $('#snap').on('click', function() {
+          context.drawImage(video, 0, 0, 320, 240);
+          $('#video-wrapper').hide();
+          $('#canvas-wrapper').show();
+        });
+        $('#retake').on('click', function() {
+          $('#video-wrapper').show();
+          $('#canvas-wrapper').hide();
+        });
+        $('#send').on('click', function() {
+          var pngUrl = canvas.toDataURL();
+          // Let Mixmax know it was done.
+          Mixmax.done({
+            data: pngUrl,
+          });
+        });
+      });
+    </script>
+  </head>
+  <body class='container'>
+    <div id='video-wrapper'>
+      <div class="row">
+        <div class='col-md-4 col-md-offset-4'>
+          <video id="video" width="320" height="240" autoplay></video>  
+        </div>
+      </div>
+      <div class="row">
+        <div class='col-md-4 col-md-offset-5'>
+          <button class='btn btn-primary' id="snap">Take Screenshot</button>
+        </div>
+      </div>
+      
+    </div>
+    <div id='canvas-wrapper'>
+      <div class="row">
+        <div class='col-md-4 col-md-offset-4'>
+          <canvas id="canvas" width="320" height="240"></canvas>
+        </div>
+      </div>
+      <div class="row">
+        <div class='col-md-4 col-md-offset-5'>
+          <button class='btn btn-danger' id="retake">Retake</button>
+          <button class='btn btn-success' id="send">Use!</button>
+        </div>
+      </div>
+      
+    </div>
+  </body>
+</html>
